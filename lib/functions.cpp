@@ -602,10 +602,10 @@ void prim(FibHeap* H, float** w, node** v_ref) {
 float weight_mst(int size_heap, node** v_ref) {
     float total_weight_mst = 0.0;
     for(int i = 0; i < size_heap; ++i) {
-    	if(v_ref[i]->pi != NULL) {
-			float weight = v_ref[i]->key;
-			total_weight_mst += weight;
-    	}
+        if(v_ref[i]->pi != NULL) {
+            float weight = v_ref[i]->key;
+            total_weight_mst += weight;
+        }
     }
 
     return total_weight_mst;
@@ -613,15 +613,15 @@ float weight_mst(int size_heap, node** v_ref) {
 
 void print_mst(int size_heap, node** node_arr) {
     for(int i = 0; i < size_heap; ++i) {
-    	if(node_arr[i]->pi != NULL) {
-			int parent_index = node_arr[i]->pi->index;
-			int current_index = node_arr[i]->index;
-			float weight = node_arr[i]->key;
-			std::cout << "node index: " << current_index << ", ";
-			std::cout << "parent index: " << parent_index << ", ";
-			std::cout << "weight: " << weight;
-			std::cout << std::endl;
-    	}
+        if(node_arr[i]->pi != NULL) {
+            int parent_index = node_arr[i]->pi->index;
+            int current_index = node_arr[i]->index;
+            float weight = node_arr[i]->key;
+            std::cout << "node index: " << current_index << ", ";
+            std::cout << "parent index: " << parent_index << ", ";
+            std::cout << "weight: " << weight;
+            std::cout << std::endl;
+        }
     }
 }
 
