@@ -536,8 +536,8 @@ void populate_adj_and_weight_hr(int* index_map, int** adj_mat, float** weight_ma
 
     int num_edges = (int) edges.size();
     for(int i = 0; i < num_edges; ++i) {
-        int start = index_map[edges[i].start_vertex];
-        int end = index_map[edges[i].end_vertex];
+        int start = index_map[edges[i].start_vertex - 1];
+        int end = index_map[edges[i].end_vertex - 1];
         float weight = edges[i].weight;
         if(elem_is_set[start][end] != SETVAR) {
             weight_mat[start][end] = weight_mat[end][start] = weight;
@@ -621,6 +621,7 @@ float mst(int n, std::vector<edge>& edges, int s) {
     const float inf = 3e+8;
 
     //Set index map
+    s = s - 1;
     int* index_map = new int[n];
     set_index_map(n, index_map, s);
 
@@ -645,8 +646,8 @@ float mst(int n, std::vector<edge>& edges, int s) {
         int start_index = edges[i].start_vertex;
         int end_index = edges[i].end_vertex;
 
-        int start_index_reordered = index_map[start_index];
-        int end_index_reordered = index_map[end_index];
+        int start_index_reordered = index_map[start_index - 1];
+        int end_index_reordered = index_map[end_index - 1];
         v_ref[start_index_reordered]->adj_nodes.push_back(end_index_reordered);
         v_ref[end_index_reordered]->adj_nodes.push_back(start_index_reordered);
     }

@@ -19,7 +19,7 @@
 int main(int argc, char* argv[])
 {
     //Declarations
-    int s = 0; //Start vertex must be greater or equal to 0
+    int s = 2; //Start vertex must be greater or equal to 1
     int n = 30; //Number of vertices
     int num_edges = 30; //Number of edges
 
