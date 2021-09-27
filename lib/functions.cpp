@@ -599,13 +599,11 @@ void prim(FibHeap* H, float** w, node** v_ref) {
     }
 }
 
-float weight_mst(int size_heap, float** w, node** v_ref) {
+float weight_mst(int size_heap, node** v_ref) {
     float total_weight_mst = 0.0;
     for(int i = 0; i < size_heap; ++i) {
     	if(v_ref[i]->pi != NULL) {
-			int parent_index = v_ref[i]->pi->index;
-			int current_index = v_ref[i]->index;
-			float weight = w[parent_index][current_index];
+			float weight = v_ref[i]->key;
 			total_weight_mst += weight;
     	}
     }
@@ -613,10 +611,24 @@ float weight_mst(int size_heap, float** w, node** v_ref) {
     return total_weight_mst;
 }
 
-float mst(int n, std::vector<edge>& edges, int s) {
+void print_mst(int size_heap, node** node_arr) {
+    for(int i = 0; i < size_heap; ++i) {
+    	if(node_arr[i]->pi != NULL) {
+			int parent_index = node_arr[i]->pi->index;
+			int current_index = node_arr[i]->index;
+			float weight = node_arr[i]->key;
+			std::cout << "node index: " << current_index << ", ";
+			std::cout << "parent index: " << parent_index << ", ";
+			std::cout << "weight: " << weight;
+			std::cout << std::endl;
+    	}
+    }
+}
+
+mst_props mst(int n, std::vector<edge>& edges, int s) {
 
     //Declarations
-    float min_span_tree = 0.0;
+    float mst_weight = 0.0;
     FibHeap H;
     const float inf = 3e+8;
 
@@ -662,7 +674,12 @@ float mst(int n, std::vector<edge>& edges, int s) {
     prim(&H, weight_mat, v_ref);
 
     //Compute MST weight
-    min_span_tree = weight_mst(n, weight_mat, v_ref);
+    mst_weight = weight_mst(n, v_ref);
 
-    return min_span_tree;
+    //Store MST properties
+    mst_props min_span_props;
+    min_span_props.mst_weight = mst_weight;
+    min_span_props.node_arr = v_ref;
+
+    return min_span_props;
 }

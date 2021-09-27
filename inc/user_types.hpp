@@ -29,6 +29,7 @@ typedef struct Node {
     Node* right;
     Node* p;
     Node* child;
+    Node* pi;
 
     std::vector<int> adj_nodes;
 
@@ -37,11 +38,13 @@ typedef struct Node {
     int index;
     bool mark;
 
-    Node* pi;
-    int index_a;
-    int parent_index;
     bool in_q;
 } node;
+
+typedef struct MSTProperties {
+	float mst_weight;
+	node** node_arr;
+} mst_props;
 
 class FibHeap {
 public:

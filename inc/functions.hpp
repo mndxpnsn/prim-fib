@@ -30,7 +30,8 @@ void fib_heap_decrease_key(FibHeap* H, node* x, float k);
 void set_index_map(int size_graph, int* index_map, int s);
 void populate_adj_and_weight_hr(int* index_map, int** adj_mat, float** weight_mat, int size_graph, std::vector<edge>& edges);
 void prim(FibHeap* H, float** w, node** v_ref);
-float weight_mst(int size_heap, float** w, node** v_ref);
-float mst(int n, std::vector<edge>& edges, int s);
+float weight_mst(int size_heap, node** v_ref);
+void print_mst(int size_heap, node** node_arr);
+mst_props mst(int n, std::vector<edge>& edges, int s);
 
 #endif /* FUNCTIONS_HPP_ */

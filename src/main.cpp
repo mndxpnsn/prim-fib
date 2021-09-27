@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     for(int i = 0; i < num_edges; ++i) {
         int start_vert = rand() % n + 1;
         int end_vert = rand() % n + 1;
-        float weight = (float) (rand() / RAND_MAX + 1) * 3.14159;
+        float weight =  (( (float) rand() ) / RAND_MAX + 1.0) * 3.14159;
 
         edge edge_elem;
         edge_elem.start_vertex = start_vert;
@@ -38,10 +38,11 @@ int main(int argc, char* argv[])
     }
 
     //Compute minimum spanning tree
-    float mst_check = mst(n, edges, s);
+    mst_props min_span_props = mst(n, edges, s);
 
     //Print results
-    std::cout << "size of minimum spanning tree: " << mst_check << std::endl;
+    print_mst(n, min_span_props.node_arr);
+    std::cout << "size of minimum spanning tree: " << min_span_props.mst_weight << std::endl;
     std::cout << "done" << std::endl;
 
     return 0;
