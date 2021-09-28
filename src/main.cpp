@@ -3,6 +3,9 @@
  *
  *  Created on: Aug 9, 2020
  *      Author: d-w-h
+ *
+ *      Implementation of Prim's algorithm
+ *      using a fibonacci heap.
  */
 
 #include <iostream>
@@ -19,7 +22,7 @@
 int main(int argc, char* argv[])
 {
     //Declarations
-    int s = 2; //Start vertex must be greater or equal to 1
+    int s = 2; //Start vertex. The minimum index for vertices is 1
     int n = 30; //Number of vertices
     int num_edges = 30; //Number of edges
 

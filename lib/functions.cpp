@@ -118,6 +118,7 @@ void consolidate(FibHeap* H) {
 
     node* x = H->min;
     if(x != NULL) {
+        //Root list has more than one element
         if(x->right != H->min) {
 
             //Ensure all root nodes have unique degrees
@@ -197,6 +198,7 @@ void consolidate(FibHeap* H) {
                 }
             }
         }
+        //Root list has one element
         else {
             int d = x->degree;
             A[d] = x;
@@ -227,7 +229,7 @@ void consolidate(FibHeap* H) {
     }
 }
 
-void print_child_circle(node* child) {
+void print_child_list(node* child) {
     node* xt = child;
     if(xt != NULL) {
         if(xt->right != child) {
@@ -257,7 +259,7 @@ void print_child_circle(node* child) {
     }
 }
 
-void print_circle(node* z) {
+void print_list(node* z) {
     node* xt = z;
     if(xt != NULL) {
         if(xt->right != z) {
@@ -265,7 +267,7 @@ void print_circle(node* z) {
                 std::cout << "xt->key: " << xt->key;
                 std::cout << ", xt->degree: " << xt->degree << std::endl;
                 if(xt->child != NULL) {
-                    print_child_circle(xt->child);
+                    print_child_list(xt->child);
                 }
                 xt = xt->right;
             }
@@ -274,7 +276,7 @@ void print_circle(node* z) {
                 std::cout << ", xt->degree: " << xt->degree << std::endl;
                 if(xt->child != NULL) {
                     if(xt->child != NULL) {
-                        print_child_circle(xt->child);
+                        print_child_list(xt->child);
                     }
                 }
             }
@@ -284,7 +286,7 @@ void print_circle(node* z) {
             std::cout << "xt->key: " << xt->key;
             std::cout << ", xt->degree: " << xt->degree << std::endl;
             if(xt->child != NULL) {
-                print_child_circle(xt->child);
+                print_child_list(xt->child);
             }
         }
     }
@@ -418,7 +420,6 @@ node* fib_heap_extract_min(FibHeap* H) {
     node* z = H->min;
 
     if(z != NULL) {
-
         //Add each child of z to root list
         node* y = z->child;
         if(y != NULL) {
@@ -442,7 +443,6 @@ node* fib_heap_extract_min(FibHeap* H) {
             H->min = NULL;
         }
         else {
-
             H->min = z->right;
             consolidate(H);
         }
@@ -526,14 +526,20 @@ void set_index_map(int size_graph, int* index_map, int s) {
     }
 }
 
-void populate_adj_and_weight_hr(int* index_map, int** adj_mat, float** weight_mat, int size_graph, std::vector<edge>& edges) {
+void populate_adj_and_weight_hr(int* index_map,
+                                int** adj_mat,
+                                float** weight_mat,
+                                int size_graph,
+                                std::vector<edge>& edges) {
 
     int** elem_is_set = int2D(size_graph);
 
     int num_edges = (int) edges.size();
     for(int i = 0; i < num_edges; ++i) {
-        int start = index_map[edges[i].start_vertex - 1];
-        int end = index_map[edges[i].end_vertex - 1];
+        int start_index = edges[i].start_vertex - 1;
+        int end_index = edges[i].end_vertex - 1;
+        int start = index_map[start_index];
+        int end = index_map[end_index];
         float weight = edges[i].weight;
         if(elem_is_set[start][end] != SETVAR) {
             weight_mat[start][end] = weight_mat[end][start] = weight;
@@ -549,7 +555,7 @@ void populate_adj_and_weight_hr(int* index_map, int** adj_mat, float** weight_ma
 bool check_fib_heap(FibHeap* H) {
     /*This is the general test for the fibonacci heap.
       The function returns true if the heap satisfies
-      the fibonacci heap properties
+      the fibonacci heap properties.
      */
 
     //Compute heap properties
@@ -579,6 +585,7 @@ void prim(FibHeap* H, float** w, node** v_ref) {
         //Set u presence in set Q to false
         u->in_q = false;
 
+        //Update adjacent nodes
         int num_adj_nodes = (int) u->adj_nodes.size();
         for(int i = 0; i < num_adj_nodes; ++i) {
             int index_ref = u->adj_nodes[i];
@@ -629,7 +636,7 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     const float inf = 3e+8;
 
     //Set index map
-    s = s - 1;
+    s = s - 1; //Map s to index s - 1
     int* index_map = new int[n];
     set_index_map(n, index_map, s);
 
@@ -651,19 +658,18 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     //Add references to adjacent nodes
     int num_edges = (int) edges.size();
     for(int i = 0; i < num_edges; ++i) {
-        int start_index = edges[i].start_vertex;
-        int end_index = edges[i].end_vertex;
+        int start_index = edges[i].start_vertex - 1;
+        int end_index = edges[i].end_vertex - 1;
 
-        int start_index_reordered = index_map[start_index - 1];
-        int end_index_reordered = index_map[end_index - 1];
-        v_ref[start_index_reordered]->adj_nodes.push_back(end_index_reordered);
-        v_ref[end_index_reordered]->adj_nodes.push_back(start_index_reordered);
+        int start = index_map[start_index];
+        int end = index_map[end_index];
+        v_ref[start]->adj_nodes.push_back(end);
+        v_ref[end]->adj_nodes.push_back(start);
     }
 
-    //Initialize weight and adjacency matrices
+    //Set weight and adjacency matrices
     int** adj_mat = int2D(n);
     float** weight_mat = float2D(n);
-
     populate_adj_and_weight_hr(index_map, adj_mat, weight_mat, n, edges);
 
     //Perform Prim's algorithm
