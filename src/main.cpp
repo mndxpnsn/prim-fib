@@ -23,8 +23,8 @@ int main(int argc, char* argv[])
 {
     //Declarations
     int s = 2; //Start vertex. The minimum index for vertices is 1
-    int n = 30; //Number of vertices
-    int num_edges = 30; //Number of edges
+    int n = 5000; //Number of vertices
+    int num_edges = 5000; //Number of edges
 
     //Create edges
     std::vector< edge > edges;
@@ -44,8 +44,9 @@ int main(int argc, char* argv[])
     mst_props min_span_props = mst(n, edges, s);
 
     //Print results
-    print_mst(n, min_span_props.node_arr);
+//    print_mst(n, min_span_props.node_arr);
     std::cout << "size of minimum spanning tree: " << min_span_props.mst_weight << std::endl;
+    std::cout << "lg V: " << log(n)/log(2) << std::endl;
     std::cout << "done" << std::endl;
 
     return 0;

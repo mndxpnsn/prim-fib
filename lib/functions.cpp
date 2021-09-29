@@ -105,11 +105,20 @@ void make_child_of(FibHeap* H, node* y, node* x) {
     x->degree = x->degree + 1;
 }
 
+int avg_dref = 0;
+int avg_op_counter = 0;
+int tot_num_ops = 0;
+int op_counter = 0;
+int lap_counter = 0;
+int d_ref = 0;
+
 void consolidate(FibHeap* H) {
 
     double golden = (1.0 + sqrt(5.0)) / 2.0;
     double f = log(H->n) / log(golden);
     int D = floor(f + 0.01) + 1;
+    d_ref = D;
+    avg_dref += d_ref;
 
     node** A = new node*[D + 2];
     for(int i = 0; i < D + 2; ++i) {
@@ -123,10 +132,14 @@ void consolidate(FibHeap* H) {
 
             //Ensure all root nodes have unique degrees
             bool there_is_dup = true;
+            lap_counter = 0;
+            op_counter = 0;
             while(there_is_dup) {
+                lap_counter++;
                 there_is_dup = false;
                 x = H->min;
                 while(x->right != H->min) {
+                    op_counter++;
                     int d = x->degree;
                     if(A[d] != NULL && A[d] != x) {
                         there_is_dup = true;
@@ -163,6 +176,7 @@ void consolidate(FibHeap* H) {
                 }
 
                 if(x->right == H->min) {
+                    op_counter++;
                     int d = x->degree;
                     if(A[d] != NULL && A[d] != x) {
                         there_is_dup = true;
@@ -197,6 +211,9 @@ void consolidate(FibHeap* H) {
                     }
                 }
             }
+
+            avg_op_counter += op_counter;
+            tot_num_ops += op_counter;
         }
         //Root list has one element
         else {
@@ -526,21 +543,43 @@ void set_index_map(int size_graph, int* index_map, int s) {
     }
 }
 
-void populate_adj_and_weight_hr(int* index_map,
-                                int** adj_mat,
-                                float** weight_mat,
-                                int size_graph,
-                                std::vector<edge>& edges) {
+void populate_adj_and_weight_mat(FibHeap* H,
+                                 int* index_map,
+                                 int** adj_mat,
+                                 float** weight_mat,
+                                 int size_graph,
+                                 std::vector<edge>& edges,
+                                 node** v_ref) {
 
     int** elem_is_set = int2D(size_graph);
 
+
+    for(int i = 0; i < size_graph; ++i) {
+        tot_num_ops++;
+        v_ref[i] = new node;
+        v_ref[i]->key = inf;
+        v_ref[i]->index = i;
+        v_ref[i]->in_q = true;
+        v_ref[i]->pi = NULL;
+        if(i == 0) {
+            v_ref[i]->key = 0.0;
+        }
+        fib_heap_insert(H, v_ref[i]);
+    }
+
+    //Add references to adjacent nodes and set adjacency and weight matrices
     int num_edges = (int) edges.size();
     for(int i = 0; i < num_edges; ++i) {
+        tot_num_ops++;
         int start_index = edges[i].start_vertex - 1;
         int end_index = edges[i].end_vertex - 1;
         int start = index_map[start_index];
         int end = index_map[end_index];
         float weight = edges[i].weight;
+
+        v_ref[start]->adj_nodes.push_back(end);
+        v_ref[end]->adj_nodes.push_back(start);
+
         if(elem_is_set[start][end] != SETVAR) {
             weight_mat[start][end] = weight_mat[end][start] = weight;
             elem_is_set[start][end] = elem_is_set[end][start] = SETVAR;
@@ -575,12 +614,22 @@ bool check_fib_heap(FibHeap* H) {
     return heap_is_ok;
 }
 
+int counter = 0;
 
 void prim(FibHeap* H, float** w, node** v_ref) {
 
     //Perform Prim's algorithm
     while(H->n > 0) {
         node* u = fib_heap_extract_min(H);
+
+        counter++;
+
+//        if(counter < 1095) {
+//            std::cout << "lap_counter: " << lap_counter << std::endl;
+//            std::cout << "op_counter: " << op_counter << std::endl;
+//            std::cout << "d_ref: " << d_ref << std::endl;
+//            std::cout << "counter: " << counter << std::endl;
+//        }
 
         //Set u presence in set Q to false
         u->in_q = false;
@@ -633,44 +682,19 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     //Declarations
     float mst_weight = 0.0;
     FibHeap H;
-    const float inf = 3e+8;
 
     //Set index map
     s = s - 1; //Map s to index s - 1
     int* index_map = new int[n];
     set_index_map(n, index_map, s);
 
-    //Initialize heap
-    int num_nodes = n;
-    node** v_ref = new node*[num_nodes];
-    for(int i = 0; i < num_nodes; ++i) {
-        v_ref[i] = new node;
-        v_ref[i]->key = inf;
-        v_ref[i]->index = i;
-        v_ref[i]->in_q = true;
-        v_ref[i]->pi = NULL;
-        if(i == 0) {
-            v_ref[i]->key = 0.0;
-        }
-        fib_heap_insert(&H, v_ref[i]);
-    }
-
-    //Add references to adjacent nodes
-    int num_edges = (int) edges.size();
-    for(int i = 0; i < num_edges; ++i) {
-        int start_index = edges[i].start_vertex - 1;
-        int end_index = edges[i].end_vertex - 1;
-
-        int start = index_map[start_index];
-        int end = index_map[end_index];
-        v_ref[start]->adj_nodes.push_back(end);
-        v_ref[end]->adj_nodes.push_back(start);
-    }
-
-    //Set weight and adjacency matrices
+    //Set weight and adjacency matrices and heap references
+    int num_edges = edges.size();
+    node** v_ref = new node*[n];
     int** adj_mat = int2D(n);
     float** weight_mat = float2D(n);
-    populate_adj_and_weight_hr(index_map, adj_mat, weight_mat, n, edges);
+
+    populate_adj_and_weight_mat(&H, index_map, adj_mat, weight_mat, n, edges, v_ref);
 
     //Perform Prim's algorithm
     prim(&H, weight_mat, v_ref);
@@ -682,6 +706,16 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     mst_props min_span_props;
     min_span_props.mst_weight = mst_weight;
     min_span_props.node_arr = v_ref;
+
+    avg_op_counter = avg_op_counter / n;
+    avg_dref = avg_dref / n;
+
+    std::cout << "avg_op_counter: " << avg_op_counter << std::endl;
+    std::cout << "avg_dref: " << avg_dref << std::endl;
+    std::cout << "tot_num_ops: " << tot_num_ops << std::endl;
+    int tot_num_ops_est = n + num_edges + 2* n * log(n) / log(2);
+    std::cout << "V + E + 2VlgV: " << tot_num_ops_est << std::endl;
+    std::cout << "ratio complexities: " << (((float) tot_num_ops) / tot_num_ops_est) << std::endl;
 
     return min_span_props;
 }
