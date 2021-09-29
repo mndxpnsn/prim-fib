@@ -13,6 +13,8 @@
 
 #include "../inc/user_types.hpp"
 
+int tot_num_ops = 0;
+
 int** int2D(const int size) {
     int** p = new int*[size];
 
@@ -105,20 +107,11 @@ void make_child_of(FibHeap* H, node* y, node* x) {
     x->degree = x->degree + 1;
 }
 
-int avg_dref = 0;
-int avg_op_counter = 0;
-int tot_num_ops = 0;
-int op_counter = 0;
-int lap_counter = 0;
-int d_ref = 0;
-
 void consolidate(FibHeap* H) {
 
     double golden = (1.0 + sqrt(5.0)) / 2.0;
     double f = log(H->n) / log(golden);
     int D = floor(f + 0.01) + 1;
-    d_ref = D;
-    avg_dref += d_ref;
 
     node** A = new node*[D + 2];
     for(int i = 0; i < D + 2; ++i) {
@@ -132,14 +125,11 @@ void consolidate(FibHeap* H) {
 
             //Ensure all root nodes have unique degrees
             bool there_is_dup = true;
-            lap_counter = 0;
-            op_counter = 0;
             while(there_is_dup) {
-                lap_counter++;
                 there_is_dup = false;
                 x = H->min;
                 while(x->right != H->min) {
-                    op_counter++;
+                	tot_num_ops++;
                     int d = x->degree;
                     if(A[d] != NULL && A[d] != x) {
                         there_is_dup = true;
@@ -176,7 +166,7 @@ void consolidate(FibHeap* H) {
                 }
 
                 if(x->right == H->min) {
-                    op_counter++;
+                	tot_num_ops++;
                     int d = x->degree;
                     if(A[d] != NULL && A[d] != x) {
                         there_is_dup = true;
@@ -211,9 +201,6 @@ void consolidate(FibHeap* H) {
                     }
                 }
             }
-
-            avg_op_counter += op_counter;
-            tot_num_ops += op_counter;
         }
         //Root list has one element
         else {
@@ -689,7 +676,6 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     set_index_map(n, index_map, s);
 
     //Set weight and adjacency matrices and heap references
-    int num_edges = edges.size();
     node** v_ref = new node*[n];
     int** adj_mat = int2D(n);
     float** weight_mat = float2D(n);
@@ -706,16 +692,6 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     mst_props min_span_props;
     min_span_props.mst_weight = mst_weight;
     min_span_props.node_arr = v_ref;
-
-    avg_op_counter = avg_op_counter / n;
-    avg_dref = avg_dref / n;
-
-    std::cout << "avg_op_counter: " << avg_op_counter << std::endl;
-    std::cout << "avg_dref: " << avg_dref << std::endl;
-    std::cout << "tot_num_ops: " << tot_num_ops << std::endl;
-    int tot_num_ops_est = n + num_edges + 2* n * log(n) / log(2);
-    std::cout << "V + E + 2VlgV: " << tot_num_ops_est << std::endl;
-    std::cout << "ratio complexities: " << (((float) tot_num_ops) / tot_num_ops_est) << std::endl;
 
     return min_span_props;
 }
