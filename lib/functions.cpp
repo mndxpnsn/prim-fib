@@ -601,22 +601,11 @@ bool check_fib_heap(FibHeap* H) {
     return heap_is_ok;
 }
 
-int counter = 0;
-
 void prim(FibHeap* H, float** w, node** v_ref) {
 
     //Perform Prim's algorithm
     while(H->n > 0) {
         node* u = fib_heap_extract_min(H);
-
-        counter++;
-
-//        if(counter < 1095) {
-//            std::cout << "lap_counter: " << lap_counter << std::endl;
-//            std::cout << "op_counter: " << op_counter << std::endl;
-//            std::cout << "d_ref: " << d_ref << std::endl;
-//            std::cout << "counter: " << counter << std::endl;
-//        }
 
         //Set u presence in set Q to false
         u->in_q = false;
