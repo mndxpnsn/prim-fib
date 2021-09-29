@@ -18,8 +18,10 @@ int tot_num_ops = 0;
 int** int2D(const int size) {
     int** p = new int*[size];
 
-    for(int i = 0; i < size; ++i)
+    for(int i = 0; i < size; ++i) {
+        tot_num_ops++;
         p[i] = new int[size];
+    }
 
     return p;
 }
@@ -27,8 +29,10 @@ int** int2D(const int size) {
 float** float2D(const int size) {
     float** p = new float*[size];
 
-    for(int i = 0; i < size; ++i)
+    for(int i = 0; i < size; ++i) {
+        tot_num_ops++;
         p[i] = new float[size];
+    }
 
     return p;
 }
@@ -115,6 +119,7 @@ void consolidate(FibHeap* H) {
 
     node** A = new node*[D + 2];
     for(int i = 0; i < D + 2; ++i) {
+        tot_num_ops++;
         A[i] = NULL;
     }
 
@@ -129,7 +134,7 @@ void consolidate(FibHeap* H) {
                 there_is_dup = false;
                 x = H->min;
                 while(x->right != H->min) {
-                	tot_num_ops++;
+                    tot_num_ops++;
                     int d = x->degree;
                     if(A[d] != NULL && A[d] != x) {
                         there_is_dup = true;
@@ -166,7 +171,7 @@ void consolidate(FibHeap* H) {
                 }
 
                 if(x->right == H->min) {
-                	tot_num_ops++;
+                    tot_num_ops++;
                     int d = x->degree;
                     if(A[d] != NULL && A[d] != x) {
                         there_is_dup = true;
@@ -212,6 +217,7 @@ void consolidate(FibHeap* H) {
     //Reconstruct root list
     H->min = NULL;
     for(int i = 0; i < D + 2; ++i) {
+        tot_num_ops++;
         if(A[i] != NULL) {
             if(H->min == NULL) {
                 A[i]->left = A[i];
@@ -521,10 +527,12 @@ void set_index_map(int size_graph, int* index_map, int s) {
 
     int index_track = 0;
     for(int i = s; i < size_graph; ++i) {
+        tot_num_ops++;
         index_map[i] = index_track;
         index_track++;
     }
     for(int i = 0; i < s; ++i) {
+        tot_num_ops++;
         index_map[i] = index_track;
         index_track++;
     }
@@ -613,6 +621,7 @@ void prim(FibHeap* H, float** w, node** v_ref) {
         //Update adjacent nodes
         int num_adj_nodes = (int) u->adj_nodes.size();
         for(int i = 0; i < num_adj_nodes; ++i) {
+            tot_num_ops++;
             int index_ref = u->adj_nodes[i];
             node* v = v_ref[index_ref];
 
@@ -630,6 +639,7 @@ void prim(FibHeap* H, float** w, node** v_ref) {
 float weight_mst(int size_heap, node** v_ref) {
     float total_weight_mst = 0.0;
     for(int i = 0; i < size_heap; ++i) {
+        tot_num_ops++;
         if(v_ref[i]->pi != NULL) {
             float weight = v_ref[i]->key;
             total_weight_mst += weight;
