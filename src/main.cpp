@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     //Declarations
     int s = 2; //Start vertex. The minimum index for vertices is 1
     int n = 2499; //Number of vertices
-    int num_edges = 20499; //Number of edges
+    int num_edges = 3125; //Number of edges
 
     //Create edges
     std::vector< edge > edges;
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 
     //Print results
     float tot_num_ops_est = 6 * n + 3 * num_edges + 5 * n * log(n) / log(2);
-//    print_mst(n, min_span_props.node_arr);
+    print_mst(n, min_span_props.node_arr);
     std::cout << "size of minimum spanning tree: " << min_span_props.mst_weight << std::endl;
     std::cout << "total number of operations measured: " << tot_num_ops << std::endl;
     std::cout << "estimated number of operations 6V + 3E + 5VlgV: " << tot_num_ops_est << std::endl;
