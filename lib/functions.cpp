@@ -37,6 +37,42 @@ float** float2D(const int size) {
     return p;
 }
 
+void free_bool2D(bool** p, int size) {
+    for(int i = 0; i < size; ++i) {
+        tot_num_ops++;
+        delete [] p[i];
+    }
+
+    delete [] p;
+}
+
+void free_int2D(int** p, int size) {
+    for(int i = 0; i < size; ++i) {
+        tot_num_ops++;
+        delete [] p[i];
+    }
+
+    delete [] p;
+}
+
+void free_float2D(float** p, int size) {
+    for(int i = 0; i < size; ++i) {
+        tot_num_ops++;
+        delete [] p[i];
+    }
+
+    delete [] p;
+}
+
+void free_node_ref(node** v_ref, int size) {
+    for(int i = 0; i < size; ++i) {
+        tot_num_ops++;
+        delete v_ref[i];
+    }
+
+    delete [] v_ref;
+}
+
 void fib_heap_insert(FibHeap* H, node* x) {
     x->degree = 0;
     x->p = NULL;
@@ -584,6 +620,9 @@ void populate_adj_and_weight_mat(FibHeap* H,
         }
         adj_mat[start][end] = adj_mat[end][start] = SETVAR;
     }
+
+    //Deallocate node flags
+    free_int2D(elem_is_set, size_graph);
 }
 
 bool check_fib_heap(FibHeap* H) {
@@ -691,6 +730,12 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     mst_props min_span_props;
     min_span_props.mst_weight = mst_weight;
     min_span_props.node_arr = v_ref;
+
+    //Deallocate memory
+    free_int2D(adj_mat, n);
+    free_float2D(weight_mat, n);
+    free_node_ref(v_ref, n);
+    delete [] index_map;
 
     return min_span_props;
 }

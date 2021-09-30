@@ -12,6 +12,9 @@
 #include "user_types.hpp"
 
 int** int2D(const int size);
+void free_bool2D(bool** p, int size) ;
+void free_int2D(int** p, int size);
+void free_node_ref(node** v_ref, int size);
 void fib_heap_insert(FibHeap* H, node* x);
 void print_root_circle(node* z);
 void make_child_of(FibHeap* H, node* y, node* x);
