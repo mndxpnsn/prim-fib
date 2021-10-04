@@ -147,6 +147,41 @@ void make_child_of(FibHeap* H, node* y, node* x) {
     x->degree = x->degree + 1;
 }
 
+void link_dup_deg(FibHeap* H, node** A, node*& x, bool& there_is_dup) {
+    int d = x->degree;
+    if(A[d] != NULL && A[d] != x) {
+        there_is_dup = true;
+        node* y = A[d];
+        if(y->key > x->key) {
+            //Make y child of x;
+             make_child_of(H, y, x);
+
+             A[d] = NULL;
+             A[d+1] = x;
+
+            if(y == H->min) {
+                H->min = x;
+            }
+        }
+        else {
+            //Make x child of y;
+            make_child_of(H, x, y);
+
+            A[d] = NULL;
+            A[d+1] = y;
+
+            if(x == H->min) {
+                H->min = y;
+            }
+
+            x = y;
+        }
+    }
+    else {
+        A[d] = x;
+    }
+}
+
 void consolidate(FibHeap* H) {
 
     double golden = (1.0 + sqrt(5.0)) / 2.0;
@@ -163,7 +198,6 @@ void consolidate(FibHeap* H) {
     if(x != NULL) {
         //Root list has more than one element
         if(x->right != H->min) {
-
             //Ensure all root nodes have unique degrees
             bool there_is_dup = true;
             while(there_is_dup) {
@@ -171,75 +205,13 @@ void consolidate(FibHeap* H) {
                 x = H->min;
                 while(x->right != H->min) {
                     tot_num_ops++;
-                    int d = x->degree;
-                    if(A[d] != NULL && A[d] != x) {
-                        there_is_dup = true;
-                        node* y = A[d];
-                        if(y->key > x->key) {
-                            //Make y child of x;
-                             make_child_of(H, y, x);
-
-                             A[d] = NULL;
-                             A[d+1] = x;
-
-                            if(y == H->min) {
-                                H->min = x;
-                            }
-                        }
-                        else {
-                            //Make x child of y;
-                            make_child_of(H, x, y);
-
-                            A[d] = NULL;
-                            A[d+1] = y;
-
-                            if(x == H->min) {
-                                H->min = y;
-                            }
-
-                            x = y;
-                        }
-                    }
-                    else {
-                        A[d] = x;
-                    }
+                    link_dup_deg(H, A, x, there_is_dup);
                     x = x->right;
                 }
 
                 if(x->right == H->min) {
                     tot_num_ops++;
-                    int d = x->degree;
-                    if(A[d] != NULL && A[d] != x) {
-                        there_is_dup = true;
-                        node* y = A[d];
-                        if(y->key > x->key) {
-                            //Make y child of x;
-                            make_child_of(H, y, x);
-
-                            A[d] = NULL;
-                            A[d+1] = x;
-
-                            if(y == H->min) {
-                                H->min = x;
-                            }
-                        }
-                        else {
-                            //Make x child of y;
-                            make_child_of(H, x, y);
-
-                            A[d] = NULL;
-                            A[d+1] = y;
-
-                            if(x == H->min) {
-                                H->min = y;
-                            }
-
-                            x = y;
-                        }
-                    }
-                    else {
-                        A[d] = x;
-                    }
+                    link_dup_deg(H, A, x, there_is_dup);
                 }
             }
         }

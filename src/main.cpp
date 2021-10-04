@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
     int num_edges = 3125; //Number of edges
 
     //Create edges
+    srand(time(NULL));
     std::vector< edge > edges;
     for(int i = 0; i < num_edges; ++i) {
         int start_vert = rand() % n + 1;
