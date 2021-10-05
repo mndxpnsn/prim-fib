@@ -460,9 +460,8 @@ void set_index_map(int size_graph, int* index_map, int s) {
     }
 }
 
-void populate_adj_and_weight_mat(FibHeap* H,
+void set_weight_mat_and_node_ref(FibHeap* H,
                                  int* index_map,
-                                 int** adj_mat,
                                  float** weight_mat,
                                  int size_graph,
                                  std::vector<edge>& edges,
@@ -504,7 +503,6 @@ void populate_adj_and_weight_mat(FibHeap* H,
         else if(elem_is_set[start][end] == SETVAR && weight_mat[start][end] >= weight) {
             weight_mat[start][end] = weight_mat[end][start] = weight;
         }
-        adj_mat[start][end] = adj_mat[end][start] = SETVAR;
     }
 
     //Deallocate node flags
@@ -598,12 +596,11 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     int* index_map = new int[n];
     set_index_map(n, index_map, s);
 
-    //Set weight and adjacency matrices and heap references
+    //Set weight matrix and heap references
     node** v_ref = new node*[n];
-    int** adj_mat = int2D(n);
     float** weight_mat = float2D(n);
 
-    populate_adj_and_weight_mat(&H, index_map, adj_mat, weight_mat, n, edges, v_ref);
+    set_weight_mat_and_node_ref(&H, index_map, weight_mat, n, edges, v_ref);
 
     //Perform Prim's algorithm
     prim(&H, weight_mat, v_ref);
@@ -617,7 +614,6 @@ mst_props mst(int n, std::vector<edge>& edges, int s) {
     min_span_props.node_arr = v_ref;
 
     //Deallocate memory
-    free_int2D(adj_mat, n);
     free_float2D(weight_mat, n);
     free_node_ref(v_ref, n);
     delete [] index_map;
