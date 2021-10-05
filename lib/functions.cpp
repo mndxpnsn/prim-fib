@@ -138,6 +138,7 @@ void make_child_of(FibHeap* H, node* y, node* x) {
 
 void link_dup_deg(FibHeap* H, node** A, node*& x, bool& there_is_dup) {
     int d = x->degree;
+    //There is a node with the same degree and node is not node x
     if(A[d] != NULL && A[d] != x) {
         there_is_dup = true;
         node* y = A[d];
@@ -166,6 +167,7 @@ void link_dup_deg(FibHeap* H, node** A, node*& x, bool& there_is_dup) {
             x = y;
         }
     }
+    //There is no node with the same degree or node is node x
     else {
         A[d] = x;
     }
@@ -187,23 +189,15 @@ void consolidate(FibHeap* H) {
     //Ensure all root nodes have unique degrees
     node* x = H->min;
     if(x != NULL) {
-        //Root list has more than one element
-        if(x->right != H->min) {
-            bool there_is_dup = true;
-            while(there_is_dup) {
-                there_is_dup = false;
-                x = H->min;
-                do {
-                    tot_num_ops++;
-                    link_dup_deg(H, A, x, there_is_dup);
-                    x = x->right;
-                } while(x != H->min);
-            }
-        }
-        //Root list has one element
-        else {
-            int d = x->degree;
-            A[d] = x;
+        bool there_is_dup = true;
+        while(there_is_dup) {
+            there_is_dup = false;
+            x = H->min;
+            do {
+                tot_num_ops++;
+                link_dup_deg(H, A, x, there_is_dup);
+                x = x->right;
+            } while(x != H->min);
         }
     }
 
