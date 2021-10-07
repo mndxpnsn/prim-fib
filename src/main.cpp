@@ -45,11 +45,11 @@ int main(int argc, char* argv[])
     mst_props min_span_props = mst(n, edges, s);
 
     //Print results
-    float tot_num_ops_est = 7 * n + 3 * num_edges + 5 * n * log(n) / log(2);
-    print_mst(n, min_span_props.node_arr);
+    float tot_num_ops_est = 5 * n + 4 * num_edges + 5 * n * log(n) / log(2);
+//    print_mst(n, min_span_props.node_arr);
     std::cout << "size of minimum spanning tree: " << min_span_props.mst_weight << std::endl;
     std::cout << "total number of operations measured: " << tot_num_ops << std::endl;
-    std::cout << "estimated number of operations 7V + 3E + 5VlgV: " << tot_num_ops_est << std::endl;
+    std::cout << "estimated number of operations 5V + 4E + 5VlgV: " << tot_num_ops_est << std::endl;
     std::cout << "ratio complexities: " << (tot_num_ops / tot_num_ops_est) << std::endl;
     std::cout << "done" << std::endl;
 
