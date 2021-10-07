@@ -446,63 +446,63 @@ void fib_heap_decrease_key(FibHeap* H, node* x, float k) {
     }
 }
 
-void set_index_map(int size_graph, int* index_map, int s) {
+int map_index(int n, int index, int s) {
+    int r;
 
-    int index_track = 0;
-    for(int i = s; i < size_graph; ++i) {
-        tot_num_ops++;
-        index_map[i] = index_track;
-        index_track++;
-    }
-    for(int i = 0; i < s; ++i) {
-        tot_num_ops++;
-        index_map[i] = index_track;
-        index_track++;
-    }
+    if(index >= s) { r = index - s; }
+    else { r = n - s + index; }
+
+    return r;
 }
 
-void set_weight_mat_and_node_ref(FibHeap* H,
-                                 int* index_map,
-                                 float** weight_mat,
-                                 int size_graph,
-                                 std::vector<edge>& edges,
-                                 node** v_ref) {
-
-    int** elem_is_set = int2D(size_graph);
+void set_weight_mat_and_ref(int size_graph,
+                            std::vector< edge >& edges,
+                            int start_vertex,
+                            FibHeap* H,
+                            float** weight_mat,
+                            node** node_refs) {
 
 
+    //Initialize and construct heap
     for(int i = 0; i < size_graph; ++i) {
         tot_num_ops++;
-        v_ref[i] = new node;
-        v_ref[i]->key = inf;
-        v_ref[i]->index = i;
-        v_ref[i]->in_q = true;
-        v_ref[i]->pi = NULL;
+        node_refs[i] = new node;
+        node_refs[i]->key = inf;
+        node_refs[i]->index = i;
+        node_refs[i]->in_q = true;
+        node_refs[i]->pi = NULL;
         if(i == 0) {
-            v_ref[i]->key = 0.0;
+            node_refs[i]->key = 0.0;
         }
-        fib_heap_insert(H, v_ref[i]);
+        fib_heap_insert(H, node_refs[i]);
     }
 
-    //Add references to adjacent nodes and set adjacency and weight matrices
+    //Set weight  matrix and adjacent nodes
     int num_edges = (int) edges.size();
+    int** elem_is_set = int2D(size_graph);
     for(int i = 0; i < num_edges; ++i) {
         tot_num_ops++;
         int start_index = edges[i].start_vertex - 1;
         int end_index = edges[i].end_vertex - 1;
-        int start = index_map[start_index];
-        int end = index_map[end_index];
         float weight = edges[i].weight;
 
-        v_ref[start]->adj_nodes.push_back(end);
-        v_ref[end]->adj_nodes.push_back(start);
+        int start = map_index(size_graph, start_index, start_vertex);
+        int end = map_index(size_graph, end_index, start_vertex);
 
-        if(elem_is_set[start][end] != SETVAR) {
-            weight_mat[start][end] = weight_mat[end][start] = weight;
-            elem_is_set[start][end] = elem_is_set[end][start] = SETVAR;
+        node_refs[start]->adj_nodes.push_back(end);
+        node_refs[end]->adj_nodes.push_back(start);
+
+        bool is_set = elem_is_set[start][end] == SETVAR;
+        bool is_greater = weight_mat[start][end] >= weight;
+        if(!is_set) {
+            weight_mat[start][end] = weight;
+            weight_mat[end][start] = weight;
+            elem_is_set[start][end] = SETVAR;
+            elem_is_set[end][start] = SETVAR;
         }
-        else if(elem_is_set[start][end] == SETVAR && weight_mat[start][end] >= weight) {
-            weight_mat[start][end] = weight_mat[end][start] = weight;
+        else if(is_set && is_greater) {
+            weight_mat[start][end] = weight;
+            weight_mat[end][start] = weight;
         }
     }
 
@@ -532,7 +532,7 @@ bool check_fib_heap(FibHeap* H) {
     return heap_is_ok;
 }
 
-void prim(FibHeap* H, float** w, node** v_ref) {
+void prim(FibHeap* H, float** w, node** node_refs) {
 
     //Perform Prim's algorithm
     while(H->n > 0) {
@@ -546,7 +546,7 @@ void prim(FibHeap* H, float** w, node** v_ref) {
         for(int i = 0; i < num_adj_nodes; ++i) {
             tot_num_ops++;
             int index_ref = u->adj_nodes[i];
-            node* v = v_ref[index_ref];
+            node* v = node_refs[index_ref];
 
             if(v->in_q && v->key > w[u->index][v->index]) {
                 float weight = w[u->index][v->index];
@@ -559,12 +559,12 @@ void prim(FibHeap* H, float** w, node** v_ref) {
     }
 }
 
-float weight_mst(int size_heap, node** v_ref) {
+float weight_mst(int size_heap, node** node_refs) {
     float total_weight_mst = 0.0;
     for(int i = 0; i < size_heap; ++i) {
         tot_num_ops++;
-        if(v_ref[i]->pi != NULL) {
-            float weight = v_ref[i]->key;
+        if(node_refs[i]->pi != NULL) {
+            float weight = node_refs[i]->key;
             total_weight_mst += weight;
         }
     }
@@ -589,35 +589,31 @@ void print_mst(int size_heap, node** node_arr) {
 mst_props mst(int n, std::vector<edge>& edges, int s) {
 
     //Declarations
-    float mst_weight = 0.0;
     FibHeap H;
+    float mst_weight = 0.0;
 
-    //Set index map
-    s = s - 1; //Map s to index s - 1
-    int* index_map = new int[n];
-    set_index_map(n, index_map, s);
+    //Map start index s to s - 1
+    s = s - 1;
 
     //Set weight matrix and heap references
-    node** v_ref = new node*[n];
+    node** node_refs = new node*[n]; //The caller of mst(n, edges, s) needs to free node refs
     float** weight_mat = float2D(n);
 
-    set_weight_mat_and_node_ref(&H, index_map, weight_mat, n, edges, v_ref);
+    set_weight_mat_and_ref(n, edges, s, &H, weight_mat, node_refs);
 
     //Perform Prim's algorithm
-    prim(&H, weight_mat, v_ref);
+    prim(&H, weight_mat, node_refs);
 
     //Compute MST weight
-    mst_weight = weight_mst(n, v_ref);
+    mst_weight = weight_mst(n, node_refs);
 
     //Store MST properties
     mst_props min_span_props;
     min_span_props.mst_weight = mst_weight;
-    min_span_props.node_arr = v_ref;
+    min_span_props.node_arr = node_refs;
 
     //Deallocate memory
     free_float2D(weight_mat, n);
-    free_node_ref(v_ref, n);
-    delete [] index_map;
 
     return min_span_props;
 }
