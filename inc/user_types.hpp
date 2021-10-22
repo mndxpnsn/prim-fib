@@ -11,8 +11,6 @@
 #include <vector>
 
 const float inf = 3e+8;
-const int SETVAR = 314159;
-extern int tot_num_ops;
 
 typedef struct Edge {
     int start_vertex;

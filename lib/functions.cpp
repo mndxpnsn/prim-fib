@@ -13,13 +13,10 @@
 
 #include "../inc/user_types.hpp"
 
-int tot_num_ops = 0;
-
 int** int2D(const int size) {
     int** p = new int*[size];
 
     for(int i = 0; i < size; ++i) {
-        tot_num_ops++;
         p[i] = new int[size];
     }
 
@@ -30,7 +27,6 @@ float** float2D(const int size) {
     float** p = new float*[size];
 
     for(int i = 0; i < size; ++i) {
-        tot_num_ops++;
         p[i] = new float[size];
     }
 
@@ -39,7 +35,6 @@ float** float2D(const int size) {
 
 void free_bool2D(bool** p, int size) {
     for(int i = 0; i < size; ++i) {
-        tot_num_ops++;
         delete [] p[i];
     }
 
@@ -48,7 +43,6 @@ void free_bool2D(bool** p, int size) {
 
 void free_int2D(int** p, int size) {
     for(int i = 0; i < size; ++i) {
-        tot_num_ops++;
         delete [] p[i];
     }
 
@@ -57,7 +51,6 @@ void free_int2D(int** p, int size) {
 
 void free_float2D(float** p, int size) {
     for(int i = 0; i < size; ++i) {
-        tot_num_ops++;
         delete [] p[i];
     }
 
@@ -66,7 +59,6 @@ void free_float2D(float** p, int size) {
 
 void free_node_ref(node** v_ref, int size) {
     for(int i = 0; i < size; ++i) {
-        tot_num_ops++;
         delete v_ref[i];
     }
 
@@ -136,46 +128,39 @@ void make_child_of(FibHeap* H, node* y, node* x) {
     x->degree = x->degree + 1;
 }
 
-void link(FibHeap* H, node** A, node* x, node* y) {
-
+void link_dup_degree(FibHeap* H, node** A, node*& x) {
     int d = x->degree;
 
-    //Make y child of x;
-    make_child_of(H, y, x);
+    if(A[d] != x) { //Don't link nodes to themselves
+        while(A[d] != NULL) {
+            node* y = A[d];
+            //Link x and y
+            if(y->key > x->key) {
+                //Make y child of x
+                make_child_of(H, y, x);
 
-    A[d] = NULL;
-    A[d+1] = x;
+                if(y == H->min) {
+                    H->min = x;
+                }
+            }
+            else {
+                //Make x child of y
+                make_child_of(H, x, y);
 
-    if(y == H->min) {
-        H->min = x;
-    }
-}
-
-void link_dup_deg(FibHeap* H, node** A, node*& x, bool& there_is_dup) {
-    int d = x->degree;
-    //There is a node with the same degree and node is not node x
-    if(A[d] != NULL && A[d] != x) {
-        there_is_dup = true;
-        node* y = A[d];
-        //Link x and y
-        if(y->key > x->key) {
-            //Make y child of x
-            link(H, A, x, y);
+                //Reset root node and root list tracker
+                H->min = y;
+                x = H->min;
+            }
+            A[d] = NULL;
+            d = d + 1;
         }
-        else {
-            //Make x child of y
-            link(H, A, y, x);
-            x = y;
-        }
-    }
-    //There is no node with the same degree or node is node x
-    else {
         A[d] = x;
     }
 }
 
 void consolidate(FibHeap* H) {
 
+    //Compute upper bound root list
     double golden = (1.0 + sqrt(5.0)) / 2.0;
     double f = log(H->n) / log(golden);
     int D = floor(f + 0.01) + 1;
@@ -183,29 +168,21 @@ void consolidate(FibHeap* H) {
     //Allocate memory for root list construction
     node** A = new node*[D + 1];
     for(int i = 0; i < D + 1; ++i) {
-        tot_num_ops++;
         A[i] = NULL;
     }
 
     //Ensure all root nodes have unique degrees
     node* x = H->min;
     if(x != NULL) {
-        bool there_is_dup = true;
-        while(there_is_dup) {
-            there_is_dup = false;
-            x = H->min;
-            do {
-                tot_num_ops++;
-                link_dup_deg(H, A, x, there_is_dup);
-                x = x->right;
-            } while(x != H->min);
-        }
+        do {
+            link_dup_degree(H, A, x);
+            x = x->right;
+        } while(x != H->min);
     }
 
     //Reconstruct root list
     H->min = NULL;
     for(int i = 0; i < D + 1; ++i) {
-        tot_num_ops++;
         if(A[i] != NULL) {
             if(H->min == NULL) {
                 A[i]->left = A[i];
@@ -467,7 +444,6 @@ void set_weight_mat_and_ref(int size_graph,
 
     //Initialize and construct heap
     for(int i = 0; i < size_graph; ++i) {
-        tot_num_ops++;
         node_refs[i] = new node;
         node_refs[i]->key = inf;
         node_refs[i]->index = i;
@@ -482,7 +458,6 @@ void set_weight_mat_and_ref(int size_graph,
     //Set weight  matrix and adjacent nodes
     int num_edges = (int) edges.size();
     for(int i = 0; i < num_edges; ++i) {
-        tot_num_ops++;
         int start_index = edges[i].start_vertex - 1;
         int end_index = edges[i].end_vertex - 1;
         float weight = edges[i].weight;
@@ -499,7 +474,6 @@ void set_weight_mat_and_ref(int size_graph,
 
     //Traverse edges again to pick minimum weights
     for(int i = 0; i < num_edges; ++i) {
-        tot_num_ops++;
         int start_index = edges[i].start_vertex - 1;
         int end_index = edges[i].end_vertex - 1;
         float weight = edges[i].weight;
@@ -549,7 +523,6 @@ void prim(FibHeap* H, float** w, node** node_refs) {
         //Update adjacent nodes
         int num_adj_nodes = (int) u->adj_nodes.size();
         for(int i = 0; i < num_adj_nodes; ++i) {
-            tot_num_ops++;
             int index_ref = u->adj_nodes[i];
             node* v = node_refs[index_ref];
 
@@ -567,7 +540,6 @@ void prim(FibHeap* H, float** w, node** node_refs) {
 float weight_mst(int size_heap, node** node_refs) {
     float total_weight_mst = 0.0;
     for(int i = 0; i < size_heap; ++i) {
-        tot_num_ops++;
         if(node_refs[i]->pi != NULL) {
             float weight = node_refs[i]->key;
             total_weight_mst += weight;
